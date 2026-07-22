@@ -1,0 +1,1 @@
+CREATE INDEX `decision_runs_created_at_idx` ON `decision_runs` (`created_at`);
