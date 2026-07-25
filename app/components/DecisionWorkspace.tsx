@@ -127,6 +127,13 @@ const initialInputs: SimulationInputs = {
 
 type ActiveView = (typeof navItems)[number]["id"];
 
+const viewTargets: Record<ActiveView, string> = {
+  command: "view-command",
+  futures: "view-futures",
+  evidence: "view-evidence",
+  lab: "view-lab",
+};
+
 function MetricDial({ value, label }: { value: number; label: string }) {
   return (
     <div className="metric-dial" style={{ "--dial": `${value * 3.6}deg` } as React.CSSProperties}>
@@ -188,17 +195,37 @@ export function DecisionWorkspace() {
     (item) => item.stance === "challenge",
   );
 
+  const navigateToView = useCallback((view: ActiveView) => {
+    setActiveView(view);
+    window.requestAnimationFrame(() => {
+      const target = document.getElementById(viewTargets[view]);
+      if (!target) return;
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      target.scrollIntoView({
+        behavior: reduceMotion ? "auto" : "smooth",
+        block: "start",
+      });
+      target.focus({ preventScroll: true });
+    });
+  }, []);
+
+  const focusEvidenceSearch = useCallback(() => {
+    navigateToView("evidence");
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => searchRef.current?.focus());
+    });
+  }, [navigateToView]);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        setActiveView("evidence");
-        window.setTimeout(() => searchRef.current?.focus(), 0);
+        focusEvidenceSearch();
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [focusEvidenceSearch]);
 
   const updateInput = useCallback(
     (key: keyof SimulationInputs, value: number) => {
@@ -261,7 +288,7 @@ export function DecisionWorkspace() {
         <button
           className="brand-mark"
           aria-label="Morrow command center"
-          onClick={() => setActiveView("command")}
+          onClick={() => navigateToView("command")}
         >
           M<span>↗</span>
         </button>
@@ -270,9 +297,10 @@ export function DecisionWorkspace() {
             <button
               key={item.id}
               className={activeView === item.id ? "nav-item active" : "nav-item"}
-              onClick={() => setActiveView(item.id)}
+              onClick={() => navigateToView(item.id)}
               aria-label={item.label}
               aria-pressed={activeView === item.id}
+              aria-controls={viewTargets[item.id]}
             >
               <span>{item.glyph}</span>
               <small>{item.label}</small>
@@ -295,7 +323,7 @@ export function DecisionWorkspace() {
             <span>PROJECT NIGHTFALL</span>
           </div>
           <div className="topbar-actions">
-            <button className="key-button" onClick={() => { setActiveView("evidence"); searchRef.current?.focus(); }}>
+            <button className="key-button" onClick={focusEvidenceSearch}>
               Search <kbd>⌘ K</kbd>
             </button>
             <button className="outline-button" onClick={exportBrief}>Export brief</button>
@@ -324,11 +352,16 @@ export function DecisionWorkspace() {
         )}
 
         <div className="content-grid">
-          <section className="signal-panel panel">
+          <section
+            id="view-command"
+            tabIndex={-1}
+            className={`signal-panel panel view-anchor ${activeView === "command" ? "active-view" : ""}`}
+            aria-labelledby="view-command-title"
+          >
             <div className="panel-heading">
               <div>
                 <p className="eyebrow">DECISION PULSE</p>
-                <h2>{simulation.recommendation === "STAGE" ? "Staged entry is dominant." : simulation.recommendation === "EXECUTE" ? "Execution threshold cleared." : "Evidence threshold not cleared."}</h2>
+                <h2 id="view-command-title">{simulation.recommendation === "STAGE" ? "Staged entry is dominant." : simulation.recommendation === "EXECUTE" ? "Execution threshold cleared." : "Evidence threshold not cleared."}</h2>
               </div>
               <span className="freshness">UPDATED 12s AGO</span>
             </div>
@@ -347,7 +380,7 @@ export function DecisionWorkspace() {
             </div>
             <div className="recommendation-bar">
               <div><span>COMPILED ACTION</span><strong>Launch cohort A · cap at 12 · review on day 21</strong></div>
-              <button onClick={() => setActiveView("lab")}>Stress-test action <span>→</span></button>
+              <button onClick={() => navigateToView("lab")}>Stress-test action <span>→</span></button>
             </div>
           </section>
 
@@ -372,13 +405,18 @@ export function DecisionWorkspace() {
             <div className="range-labels"><span>−€16M</span><span>€{simulation.spread.expected}M MEDIAN</span><span>+€39M</span></div>
           </section>
 
-          <section className="futures-panel panel">
+          <section
+            id="view-futures"
+            tabIndex={-1}
+            className={`futures-panel panel view-anchor ${activeView === "futures" ? "active-view" : ""}`}
+            aria-labelledby="view-futures-title"
+          >
             <div className="panel-heading compact">
               <div>
                 <p className="eyebrow">CAUSAL FUTURES</p>
-                <h3>Three viable branches</h3>
+                <h3 id="view-futures-title">Three viable branches</h3>
               </div>
-              <button className="text-button" onClick={() => setActiveView("futures")}>Expand map ↗</button>
+              <button className="text-button" onClick={() => navigateToView("futures")}>Expand map ↗</button>
             </div>
             <div className="future-map">
               <div className="origin-node"><span>NOW</span><strong>GO / NO-GO</strong></div>
@@ -400,11 +438,16 @@ export function DecisionWorkspace() {
             </div>
           </section>
 
-          <section className="lab-panel panel">
+          <section
+            id="view-lab"
+            tabIndex={-1}
+            className={`lab-panel panel view-anchor ${activeView === "lab" ? "active-view" : ""}`}
+            aria-labelledby="view-lab-title"
+          >
             <div className="panel-heading compact">
               <div>
                 <p className="eyebrow">COUNTERFACTUAL LAB</p>
-                <h3>Move the world. Watch the decision.</h3>
+                <h3 id="view-lab-title">Move the world. Watch the decision.</h3>
               </div>
               <span className={`verdict ${simulation.recommendation.toLowerCase()}`}>{simulation.recommendation}</span>
             </div>
@@ -425,11 +468,16 @@ export function DecisionWorkspace() {
             </div>
           </section>
 
-          <section className="evidence-panel panel">
+          <section
+            id="view-evidence"
+            tabIndex={-1}
+            className={`evidence-panel panel view-anchor ${activeView === "evidence" ? "active-view" : ""}`}
+            aria-labelledby="view-evidence-title"
+          >
             <div className="panel-heading compact">
               <div>
                 <p className="eyebrow">EVIDENCE LEDGER</p>
-                <h3>Every claim has a spine.</h3>
+                <h3 id="view-evidence-title">Every claim has a spine.</h3>
               </div>
               <span className="sources-count">{evidence.length} SOURCES · 2 CONFLICTS</span>
             </div>
@@ -473,7 +521,7 @@ export function DecisionWorkspace() {
               <li><span>02</span> Cross-border legal variance widens after launch.</li>
               <li><span>03</span> Field engineering becomes the true bottleneck.</li>
             </ul>
-            <button onClick={() => { setQuery("conversion regulation capacity risk"); setActiveView("evidence"); }}>Inspect disconfirming evidence <span>→</span></button>
+            <button onClick={() => { setQuery("conversion regulation capacity risk"); navigateToView("evidence"); }}>Inspect disconfirming evidence <span>→</span></button>
           </aside>
         </div>
 

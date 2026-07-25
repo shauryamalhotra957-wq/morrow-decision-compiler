@@ -380,6 +380,21 @@ kbd {
   overflow: hidden;
 }
 
+.view-anchor {
+  scroll-margin-top: 92px;
+  transition: border-color 220ms ease, box-shadow 220ms ease;
+}
+
+.view-anchor:focus {
+  outline: 2px solid var(--acid);
+  outline-offset: 4px;
+}
+
+.view-anchor.active-view {
+  border-color: rgba(201, 255, 59, 0.38);
+  box-shadow: 0 0 0 1px rgba(201, 255, 59, 0.06), 0 18px 60px rgba(0, 0, 0, 0.22);
+}
+
 .panel::after {
   content: "";
   position: absolute;
