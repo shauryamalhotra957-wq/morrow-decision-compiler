@@ -8,5 +8,4 @@ CREATE TABLE `decision_runs` (
 	`fingerprint` text NOT NULL,
 	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
---> statement-breakpoint
 CREATE UNIQUE INDEX `decision_runs_fingerprint_unique` ON `decision_runs` (`fingerprint`);
