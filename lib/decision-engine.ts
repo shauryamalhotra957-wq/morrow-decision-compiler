@@ -73,12 +73,13 @@ export function rankEvidence(
   records: EvidenceRecord[],
   limit = 4,
 ): RankedEvidence[] {
+  const safeLimit = Number.isSafeInteger(limit) ? Math.max(1, Math.min(20, limit)) : 4;
   const queryTokens = tokenize(query);
   if (!queryTokens.length) {
     return records
       .slice()
       .sort((a, b) => b.trust - a.trust)
-      .slice(0, limit)
+      .slice(0, safeLimit)
       .map((record) => ({ ...record, relevance: record.trust }));
   }
 
@@ -120,7 +121,7 @@ export function rankEvidence(
 
   return scored
     .sort((a, b) => b.relevance - a.relevance || b.trust - a.trust)
-    .slice(0, limit);
+    .slice(0, safeLimit);
 }
 
 function mulberry32(seed: number) {
