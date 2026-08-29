@@ -149,3 +149,7 @@ Morrow's shape follows a converging body of evidence: enterprise RAG is now eval
 ## License
 
 MIT — see [LICENSE](./LICENSE).
+
+## API safety notes
+
+Decision ledger failures return stable public errors. Evidence limits are bounded, and simulation controls normalize non-finite or out-of-range values before modeling so persisted outputs remain finite and reproducible. See the API and retrieval boundary tests for examples.
