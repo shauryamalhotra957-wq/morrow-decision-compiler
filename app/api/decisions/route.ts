@@ -24,6 +24,10 @@ async function fingerprint(value: string) {
     .join("");
 }
 
+export function errorResponse(message: string, status = 500) {
+  return Response.json({ error: message }, { status });
+}
+
 export async function GET() {
   try {
     await ensureDecisionSchema();
@@ -40,11 +44,8 @@ export async function GET() {
       .orderBy(desc(decisionRuns.createdAt), desc(decisionRuns.id))
       .limit(20);
     return Response.json({ decisions: rows });
-  } catch (error) {
-    return Response.json(
-      { error: error instanceof Error ? error.message : "Unable to read ledger" },
-      { status: 500 },
-    );
+  } catch {
+    return errorResponse("Unable to read ledger");
   }
 }
 
@@ -57,18 +58,18 @@ export async function POST(request: Request) {
     const confidence = Number(payload.confidence);
 
     if (!title || !question) {
-      return Response.json({ error: "title and question are required" }, { status: 400 });
+      return errorResponse("title and question are required", 400);
     }
     if (!allowedRecommendations.has(recommendation)) {
-      return Response.json({ error: "invalid recommendation" }, { status: 400 });
+      return errorResponse("invalid recommendation", 400);
     }
     if (!Number.isFinite(confidence) || confidence < 0 || confidence > 100) {
-      return Response.json({ error: "confidence must be between 0 and 100" }, { status: 400 });
+      return errorResponse("confidence must be between 0 and 100", 400);
     }
 
     const scenarioJson = JSON.stringify(payload.scenario ?? {});
     if (scenarioJson.length > 50_000) {
-      return Response.json({ error: "scenario exceeds 50KB" }, { status: 413 });
+      return errorResponse("scenario exceeds 50KB", 413);
     }
     const decisionFingerprint = await fingerprint(
       `${question}|${recommendation}|${confidence}|${scenarioJson}`,
@@ -97,10 +98,7 @@ export async function POST(request: Request) {
       })
       .returning();
     return Response.json({ decision }, { status: 201 });
-  } catch (error) {
-    return Response.json(
-      { error: error instanceof Error ? error.message : "Unable to seal decision" },
-      { status: 500 },
-    );
+  } catch {
+    return errorResponse("Unable to seal decision");
   }
 }
