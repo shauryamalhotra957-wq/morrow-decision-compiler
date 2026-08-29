@@ -124,6 +124,11 @@ export function rankEvidence(
     .slice(0, safeLimit);
 }
 
+function normalizedInput(value: number, fallback = 50) {
+  const safe = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : fallback;
+  return safe / 100;
+}
+
 function mulberry32(seed: number) {
   return () => {
     let value = (seed += 0x6d2b79f5);
@@ -151,10 +156,10 @@ export function simulateDecision(
   iterations = 2400,
 ): SimulationResult {
   const normalized = {
-    readiness: inputs.readiness / 100,
-    speed: inputs.speed / 100,
-    evidenceDepth: inputs.evidenceDepth / 100,
-    riskAppetite: inputs.riskAppetite / 100,
+    readiness: normalizedInput(inputs.readiness),
+    speed: normalizedInput(inputs.speed),
+    evidenceDepth: normalizedInput(inputs.evidenceDepth),
+    riskAppetite: normalizedInput(inputs.riskAppetite),
   };
   const random = mulberry32(seed);
   const outcomes: number[] = [];
@@ -212,6 +217,8 @@ export function simulateDecision(
     },
   };
 }
+
+export { normalizedInput };
 
 export function stableScenarioSeed(inputs: SimulationInputs) {
   return (
