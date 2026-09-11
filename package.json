@@ -12,6 +12,7 @@
     "test": "npm run build && node --experimental-strip-types --import ./tests/register-loader.mjs --test tests/decision-engine.test.ts tests/rendered-html.test.mjs",
     "test:unit": "node --experimental-strip-types --test tests/decision-engine.test.ts",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
+    "check": "npm run lint && npm test",
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
