@@ -1,5 +1,8 @@
 # MORROW / Decision Compiler
 
+[![CI](https://github.com/shauryamalhotra957-wq/morrow-decision-compiler/actions/workflows/ci.yml/badge.svg)](https://github.com/shauryamalhotra957-wq/morrow-decision-compiler/actions) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+
 > Stop asking AI for answers. Interrogate the future.
 
 Morrow is an evidence-grounded decision intelligence workspace for high-stakes, partially reversible bets. It retrieves the strongest supporting and disconfirming evidence, exposes causal branches, runs deterministic Monte Carlo counterfactuals, and seals every decision into an auditable SQL ledger.
